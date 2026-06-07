@@ -1,0 +1,10 @@
+{
+  "name": "pretext-reader-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "verify": "node scripts/verify-all.mjs",
+    "verify:docker": "node scripts/verify-docker.mjs",
+    "verify:docker:build": "node scripts/verify-docker.mjs --build"
+  }
+}

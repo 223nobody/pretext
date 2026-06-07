@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pretext Reader</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --bg: #111318;
+        --page: #171b23;
+        --text: #f3eadf;
+        --muted: #a9adba;
+        --accent: #f4d35e;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      #meta {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      main {
+        max-width: 1120px;
+        min-height: calc(100vh - 92px);
+        margin: 24px auto;
+        padding: 42px;
+        background: var(--page);
+        border-radius: 8px;
+        column-count: 2;
+        column-gap: 42px;
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      p {
+        margin: 0 0 1em;
+        break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1 id="title">Pretext Reader</h1>
+        <div id="meta"></div>
+      </div>
+    </header>
+    <main id="reader"></main>
+    <script src="reader.js"></script>
+  </body>
+</html>

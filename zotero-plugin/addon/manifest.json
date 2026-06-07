@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "Pretext Reader",
+  "version": "0.1.0",
+  "description": "基于 Pretext 引擎的多栏动态阅读器",
+  "author": "Pretext Reader",
+  "homepage_url": "https://example.local/pretext-reader",
+  "applications": {
+    "zotero": {
+      "id": "pretext-reader@example.local",
+      "strict_min_version": "7.0",
+      "strict_max_version": "7.*"
+    }
+  },
+  "permissions": ["activeTab"]
+}

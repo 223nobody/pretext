@@ -1,0 +1,19 @@
+{
+  "addons": {
+    "pretext-reader@example.local": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://github.com/yourname/zotero-pretext-reader/releases/latest/download/pretext-reader.xpi",
+          "update_hash": "sha256:b06a6ed68e5d1f3ce44c5111117cafda813d9cc6c8897451e7a058fe8dd3f7a7",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "7.0",
+              "strict_max_version": "7.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

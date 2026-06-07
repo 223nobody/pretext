@@ -1,0 +1,52 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - APP_NAME=${APP_NAME:-Pretext Reader API}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-52428800}
+      - CACHE_TTL=${CACHE_TTL:-86400}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000}
+      - MAX_TEXT_CHARS=${MAX_TEXT_CHARS:-1000000}
+      - MAX_PREVIEW_CHARS=${MAX_PREVIEW_CHARS:-500}
+      - CACHE_DIR=${CACHE_DIR:-/app/cache}
+      - UPLOAD_DIR=${UPLOAD_DIR:-/app/uploads}
+      - ENABLE_OCR=${ENABLE_OCR:-false}
+      - OCR_LANGUAGE=${OCR_LANGUAGE:-eng}
+      - URL_FETCH_USER_AGENT=${URL_FETCH_USER_AGENT:-PretextReader/0.1}
+    volumes:
+      - ./cache:/app/cache
+      - ./uploads:/app/uploads
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json, urllib.request; payload=json.load(urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)); raise SystemExit(0 if payload.get('success') and payload.get('data', {}).get('status') == 'ok' else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+        VITE_APP_NAME: ${VITE_APP_NAME:-Pretext Reader}
+        VITE_DEFAULT_THEME: ${VITE_DEFAULT_THEME:-dark}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://127.0.0.1/healthz | grep -q '^ok'"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
