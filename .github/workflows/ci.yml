@@ -83,7 +83,7 @@ jobs:
         run: npm run verify
 
       - name: Upload XPI artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pretext-reader.xpi
           path: zotero-plugin/build/pretext-reader.xpi
@@ -97,7 +97,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build Docker images
+      - name: Build backend Docker image
+        run: docker build -t pretext-backend ./backend
+
+      - name: Build frontend Docker image
         run: |
-          docker compose version
-          docker compose build --progress=plain
+          docker build \
+            --build-arg VITE_API_URL=http://localhost:8000/api/v1 \
+            --build-arg VITE_APP_NAME="Pretext Reader" \
+            --build-arg VITE_DEFAULT_THEME=light \
+            -t pretext-frontend \
+            ./frontend
