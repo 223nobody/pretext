@@ -113,7 +113,8 @@ jobs:
 
       - uses: docker/build-push-action@v7
         with:
-          context: ./frontend
+          context: .
+          file: ./frontend/Dockerfile
           push: false
           build-args: |
             VITE_API_URL=http://localhost:8000/api/v1
