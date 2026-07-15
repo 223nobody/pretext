@@ -1,4 +1,4 @@
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftOpen } from "lucide-react";
 
 import { IconButton } from "../ui/IconButton";
 import { ReaderArea } from "./ReaderArea";
@@ -12,14 +12,16 @@ export function AppLayout() {
   const toggleSidebar = useReaderStore((state) => state.toggleSidebar);
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" data-sidebar={isSidebarOpen ? "open" : "closed"}>
       {isSidebarOpen ? <Sidebar /> : null}
-      <IconButton
-        className="sidebar-toggle"
-        icon={isSidebarOpen ? PanelLeftClose : PanelLeftOpen}
-        label={t(language, isSidebarOpen ? "hidePanel" : "showPanel")}
-        onClick={toggleSidebar}
-      />
+      {isSidebarOpen ? null : (
+        <IconButton
+          className="sidebar-toggle"
+          icon={PanelLeftOpen}
+          label={t(language, "showPanel")}
+          onClick={toggleSidebar}
+        />
+      )}
       <ReaderArea />
     </main>
   );

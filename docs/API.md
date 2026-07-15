@@ -30,6 +30,17 @@ Errors return:
 
 Health check.
 
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "service": "pretext-reader"
+  }
+}
+```
+
 ### `POST /file/upload`
 
 Multipart upload:
@@ -98,21 +109,37 @@ URL fetch failures are normalized into API errors:
 - `URL_TIMEOUT` with HTTP 504 when the remote page exceeds the configured timeout.
 - `URL_FETCH_FAILED` with HTTP 502 when the remote page returns an HTTP error or the network request fails.
 
-### `GET /samples`
-
-List bundled sample articles.
-
-### `GET /samples/{id}`
-
-Return one bundled sample article.
-
 ### `DELETE /cache/{key}`
 
 Delete a cached extraction result by key.
 
+**Response 200 (key existed):**
+```json
+{
+  "success": true,
+  "data": { "key": "abc123", "deleted": true }
+}
+```
+
+**Response 200 (key not found):**
+```json
+{
+  "success": true,
+  "data": { "key": "missing-key", "deleted": false }
+}
+```
+
 ### `DELETE /cache`
 
 Remove expired or corrupt cache entries.
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": { "scanned": 5, "deleted": 2 }
+}
+```
 
 ## Local Verification
 

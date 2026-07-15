@@ -14,13 +14,6 @@ def test_health_endpoint() -> None:
     assert response.json()["data"]["status"] == "ok"
 
 
-def test_samples_endpoint() -> None:
-    response = client.get("/api/v1/samples")
-
-    assert response.status_code == 200
-    assert len(response.json()["data"]) >= 3
-
-
 def test_text_extract_endpoint() -> None:
     response = client.post(
         "/api/v1/text/extract",

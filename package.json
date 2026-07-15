@@ -5,6 +5,7 @@
   "scripts": {
     "verify": "node scripts/verify-all.mjs",
     "verify:docker": "node scripts/verify-docker.mjs",
-    "verify:docker:build": "node scripts/verify-docker.mjs --build"
+    "verify:docker:build": "node scripts/verify-docker.mjs --build",
+    "test:e2e": "cd frontend && npx playwright test --config e2e/playwright.config.ts"
   }
 }

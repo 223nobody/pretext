@@ -166,6 +166,7 @@ function assertTextExtractionContract() {
   const types = read("frontend/src/types/index.ts");
   const api = read("frontend/src/lib/api.ts");
   const textInput = read("frontend/src/components/content/TextInput.tsx");
+  const smartInput = read("frontend/src/components/content/SmartInput.tsx");
   const sidebar = read("frontend/src/components/layout/Sidebar.tsx");
   const apiDoc = read("docs/API.md");
 
@@ -182,7 +183,7 @@ function assertTextExtractionContract() {
   }
 
   for (const snippet of [
-    'export type ContentSource = "arxiv" | "url" | "sample" | "file" | "text";',
+    'export type ContentSource = "arxiv" | "url" | "file" | "text";',
     "export interface TextExtractResult",
     "char_count: number;",
     "preview: string;",
@@ -219,7 +220,17 @@ function assertTextExtractionContract() {
     }
   }
 
-  if (!sidebar.includes('import { TextInput } from "../content/TextInput";') || !sidebar.includes("<TextInput />")) {
+  const sidebarExposesLegacyTextInput =
+    sidebar.includes('import { TextInput } from "../content/TextInput";') &&
+    sidebar.includes("<TextInput />");
+  const sidebarExposesSmartInput =
+    sidebar.includes('import { SmartInput } from "../content/SmartInput";') &&
+    sidebar.includes("<SmartInput />") &&
+    smartInput.includes('import { extractText') &&
+    smartInput.includes("const result = await extractText(value);") &&
+    smartInput.includes('"text"');
+
+  if (!sidebarExposesLegacyTextInput && !sidebarExposesSmartInput) {
     fail("Sidebar must expose the text extraction input source.");
   }
 

@@ -2,12 +2,15 @@
   "manifest_version": 2,
   "name": "Pretext Reader",
   "version": "0.1.0",
-  "description": "基于 Pretext 引擎的多栏动态阅读器",
+  "description": "Multi-column dynamic reader powered by the Pretext layout engine",
   "author": "Pretext Reader",
-  "homepage_url": "https://example.local/pretext-reader",
+  "_todo_homepage_url": "Replace with official GitHub repository URL before v0.2.0 release",
+  "homepage_url": "https://github.com/223nobody/pretext",
   "applications": {
     "zotero": {
-      "id": "pretext-reader@example.local",
+      "_todo_id": "Replace with official addon ID before submitting to zotero-addons-scraper",
+      "id": "pretext-reader@pretext.local",
+      "update_url": "https://github.com/223nobody/pretext/releases/latest/download/update.json",
       "strict_min_version": "7.0",
       "strict_max_version": "7.*"
     }

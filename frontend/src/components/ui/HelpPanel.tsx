@@ -14,7 +14,7 @@ export function HelpPanel() {
   }
 
   const shortcuts = [
-    ["1-4", t(language, "columns")],
+    ["1-2", t(language, "columns")],
     ["[", t(language, "fewerColumns")],
     ["]", t(language, "moreColumns")],
     ["Left", t(language, "previousPage")],

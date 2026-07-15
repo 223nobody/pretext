@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    name: Build and Publish Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install zotero-plugin dependencies
+        working-directory: zotero-plugin
+        run: npm ci
+
+      - name: Build zotero plugin
+        working-directory: zotero-plugin
+        run: npm run build
+
+      - name: Verify plugin package
+        working-directory: zotero-plugin
+        run: npm run verify
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Pretext Reader ${{ github.ref_name }}
+          body: |
+            ## Pretext Reader ${{ github.ref_name }}
+
+            ### Zotero Plugin
+            - Canvas-based text rendering with Pretext layout engine
+            - Multi-column reading (1-4 columns)
+            - Cursor bubble highlight effect
+            - Dark / Light / Sepia themes
+            - Keyboard shortcuts (1-4, T, [, ])
+
+            ### Installation
+            1. Download `pretext-reader.xpi`
+            2. In Zotero, go to Tools → Add-ons → Install Add-on From File
+            3. Select the downloaded `.xpi` file
+
+            ### Web App
+            See the [Pretext Reader](https://github.com/223nobody/pretext) repository for the full-stack web application.
+          files: |
+            zotero-plugin/build/pretext-reader.xpi
+            zotero-plugin/build/update.json
+          generate_release_notes: true

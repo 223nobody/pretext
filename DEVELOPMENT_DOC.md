@@ -1438,7 +1438,7 @@ ENABLE_OCR=false                # PDF OCR（需额外配置 Tesseract）
 # 前端
 VITE_API_URL=http://localhost:8000/api/v1
 VITE_APP_NAME=Pretext Reader
-VITE_DEFAULT_THEME=dark
+VITE_DEFAULT_THEME=light
 ```
 
 ---

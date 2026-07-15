@@ -13,6 +13,32 @@ dist/
 .env
 .env.local
 npm-debug.log*
+*.tsbuildinfo
 
 .DS_Store
 Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Test coverage reports
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+
+# Python packaging
+*.egg-info/
+*.egg
+build/
+
+# General log files
+*.log
+
+# Alternative venv names
+venv/
+
+# Build artifacts (generated at build time)
+zotero-plugin/addon/content/reader.js
+zotero-plugin/build/

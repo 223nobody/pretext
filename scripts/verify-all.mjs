@@ -43,11 +43,6 @@ const commands = [
     command: [process.execPath, resolve(root, "scripts", "verify-api-docs-contract.mjs")],
   },
   {
-    name: "sample article contract checks",
-    cwd: root,
-    command: [process.execPath, resolve(root, "scripts", "verify-samples-contract.mjs")],
-  },
-  {
     name: "backend tests",
     cwd: resolve(root, "backend"),
     command: [pythonCommand, "-m", "pytest"],

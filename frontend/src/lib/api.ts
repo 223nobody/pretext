@@ -1,8 +1,6 @@
 import type {
   ApiResponse,
   ArxivArticle,
-  SampleArticle,
-  SampleSummary,
   TextExtractResult,
   UploadResult,
   UrlArticle,
@@ -67,14 +65,6 @@ export async function extractText(text: string, maxChars = 500_000): Promise<Tex
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, max_chars: maxChars }),
   });
-}
-
-export async function listSamples(): Promise<SampleSummary[]> {
-  return request<SampleSummary[]>(`${API_URL}/samples`);
-}
-
-export async function getSample(id: string): Promise<SampleArticle> {
-  return request<SampleArticle>(`${API_URL}/samples/${encodeURIComponent(id)}`);
 }
 
 export async function getArxiv(id: string): Promise<ArxivArticle> {

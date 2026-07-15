@@ -4,11 +4,11 @@ Full-stack reader built from `DEVELOPMENT_DOC.md`: FastAPI backend, React/Vite f
 
 ## Current Capabilities
 
-- FastAPI API under `/api/v1` with health, file upload, raw text extraction, URL fetch, ArXiv fetch, samples, and cache cleanup endpoints.
+- FastAPI API under `/api/v1` with health, file upload, raw text extraction, URL fetch, ArXiv fetch, and cache cleanup endpoints.
 - File validation for extension, size, MIME warnings, encoding detection, unsafe markup, and empty content.
 - Text extraction for PDF, TXT, Markdown, HTML, DOCX, EPUB, and LaTeX. Optional OCR is available for scanned PDFs through Tesseract.
 - ArXiv fetching with metadata, PDF download/extraction when available, and abstract fallback.
-- React reader with sidebar content sources for pasted text, drag-and-drop upload, samples, ArXiv, and URL loading, plus six themes, adjustable columns/column gap/font/line height, progress, keyboard shortcuts, fullscreen mode, custom cursor uploads (PNG/GIF/APNG/WebP/WebM), and background-video text avoidance.
+- React reader with sidebar content sources for pasted text, drag-and-drop upload, a bundled PDF sample article, ArXiv, and URL loading, plus six themes, adjustable columns/column gap/font/line height, progress, keyboard shortcuts, fullscreen mode, custom cursor uploads (PNG/GIF/APNG/WebP/WebM), and background-video text avoidance.
 - Zotero 7 plugin source, local reader page, XPI packaging, `update.json` generation, and package verification.
 - Docker Compose deployment with persistent backend cache/uploads, backend and frontend healthchecks, nginx SPA fallback, and static asset caching.
 

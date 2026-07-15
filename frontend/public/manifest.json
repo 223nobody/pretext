@@ -1,0 +1,17 @@
+{
+  "name": "Pretext Reader",
+  "short_name": "Pretext",
+  "description": "Multi-column dynamic text reader powered by Pretext engine",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#2d74cc",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

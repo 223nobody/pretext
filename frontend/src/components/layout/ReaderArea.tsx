@@ -1,6 +1,7 @@
 import { AlertCircle, RotateCcw } from "lucide-react";
 
 import { PageCanvas } from "../reader/PageCanvas";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { Skeleton } from "../ui/Skeleton";
 import { IconButton } from "../ui/IconButton";
 import { UploadProgress } from "../upload/UploadProgress";
@@ -21,7 +22,7 @@ export function ReaderArea() {
       <header className="reader-header">
         <div>
           <p className="eyebrow">{metadata?.source ?? t(language, "ready")}</p>
-          <h2>{metadata?.title ?? t(language, "readyTitle")}</h2>
+          {metadata?.title ? <h2>{metadata.title}</h2> : null}
         </div>
         <div className="reader-meta">
           {Array.isArray(metadata?.author) ? metadata.author.join(", ") : metadata?.author}
@@ -42,7 +43,9 @@ export function ReaderArea() {
           <UploadProgress value={loadingProgress} label={t(language, "uploadProgress")} />
         </div>
       ) : (
-        <PageCanvas text={text} />
+        <ErrorBoundary>
+          <PageCanvas text={text} />
+        </ErrorBoundary>
       )}
     </section>
   );

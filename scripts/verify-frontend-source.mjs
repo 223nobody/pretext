@@ -24,6 +24,41 @@ function fail(message) {
   throw new Error(message);
 }
 
+function hexToRgb(hex) {
+  const value = hex.replace("#", "");
+  return [0, 2, 4].map((offset) => parseInt(value.slice(offset, offset + 2), 16) / 255);
+}
+
+function relativeLuminance(hex) {
+  const [r, g, b] = hexToRgb(hex).map((channel) => (
+    channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  ));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(foreground, background) {
+  const fg = relativeLuminance(foreground);
+  const bg = relativeLuminance(background);
+  const lighter = Math.max(fg, bg);
+  const darker = Math.min(fg, bg);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function extractCssBlock(css, selector) {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([\\s\\S]*?)\\n\\}`));
+  return match?.[1] ?? "";
+}
+
+function extractCssVariables(block) {
+  return Object.fromEntries(
+    [...block.matchAll(/(--[\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)]
+      .map((match) => [match[1], match[2].toLowerCase()]),
+  );
+}
+
 function extractDictionaryKeys(source, language) {
   const start = source.indexOf(`  ${language}: {`);
   if (start === -1) {
@@ -191,12 +226,19 @@ function assertReaderLayoutControlsMatchDevelopmentDoc() {
   const textLayer = read("frontend/src/components/reader/TextLayer.tsx");
   const columnSlider = read("frontend/src/components/controls/ColumnSlider.tsx");
   const fontSizeSlider = read("frontend/src/components/controls/FontSizeSlider.tsx");
+  const keyboard = read("frontend/src/hooks/useKeyboard.ts");
 
   const requirements = [
     {
-      name: "column count 1-4",
-      source: columnSlider,
-      snippets: ['min="1"', 'max="4"', "setColumnCount(Number(event.target.value))"],
+      name: "column count 1-2",
+      source: store + columnSlider + keyboard,
+      snippets: [
+        "export const MAX_READER_COLUMNS = 2;",
+        'min="1"',
+        "max={MAX_READER_COLUMNS}",
+        "setColumnCount(Number(event.target.value))",
+        'event.key <= String(MAX_READER_COLUMNS)',
+      ],
     },
     {
       name: "adjustable column gap",
@@ -344,7 +386,7 @@ function assertThemesAndResponsiveLayoutMatchDevelopmentDoc() {
   const switcher = read("frontend/src/components/controls/ThemeSwitcher.tsx");
   const i18n = read("frontend/src/lib/i18n.ts");
   const css = read("frontend/src/styles/index.css");
-  const expectedThemes = ["dark", "light", "sepia", "forest", "ocean", "sunset"];
+  const expectedThemes = ["light", "dark", "sepia", "forest", "ocean", "sunset"];
 
   if (!types.includes('export type ThemeName = "dark" | "light" | "sepia" | "forest" | "ocean" | "sunset";')) {
     fail("ThemeName must enumerate the six development-doc themes.");
@@ -357,6 +399,54 @@ function assertThemesAndResponsiveLayoutMatchDevelopmentDoc() {
     if (!css.includes(cssSelector)) {
       fail(`CSS is missing theme variables for: ${name}`);
     }
+
+    const selector = name === "dark" ? ":root" : `html[data-theme="${name}"]`;
+    const vars = extractCssVariables(extractCssBlock(css, selector));
+    for (const token of [
+      "--bg",
+      "--panel",
+      "--text",
+      "--muted",
+      "--accent",
+      "--on-accent",
+      "--mask",
+      "--page",
+      "--page-text",
+      "--page-muted",
+      "--page-accent",
+    ]) {
+      if (!vars[token]) {
+        fail(`CSS theme ${name} is missing color token: ${token}`);
+      }
+    }
+    if (vars["--mask"] !== vars["--accent"]) {
+      fail(`CSS theme ${name} must keep --mask aligned with --accent.`);
+    }
+    const contrastChecks = [
+      ["--text", "--bg", "body text", 4.5],
+      ["--text", "--panel", "panel text", 4.5],
+      ["--muted", "--panel", "muted panel text", 4.5],
+      ["--accent", "--bg", "accent text", 4.5],
+      ["--on-accent", "--accent", "accent surface text", 4.5],
+      ["--page-text", "--page", "reader text", 7],
+      ["--page-muted", "--page", "reader secondary text", 7],
+      ["--page-accent", "--page", "reader accent text", 4.5],
+      ["--mask", "--page", "reader mask", 4.5],
+    ];
+    for (const [foreground, background, label, minimum] of contrastChecks) {
+      const ratio = contrastRatio(vars[foreground], vars[background]);
+      if (ratio < minimum) {
+        fail(`CSS theme ${name} ${label} contrast is ${ratio.toFixed(2)} (< ${minimum}).`);
+      }
+    }
+  }
+
+  const canvasTextLayer = read("frontend/src/renderer/layers/TextLayer.ts");
+  if (!canvasTextLayer.includes("colors.pageMuted") || !canvasTextLayer.includes("colors.pageAccent")) {
+    fail("Canvas TextLayer must use semantic pageMuted/pageAccent colors for article roles.");
+  }
+  if (canvasTextLayer.includes("hexToRgba") || canvasTextLayer.includes("0.52")) {
+    fail("Canvas TextLayer must not simulate low-emphasis article text with translucent page text.");
   }
   const swatchCount = (theme.match(/swatch:\s*"#[0-9a-fA-F]{6}"/g) ?? []).length;
   if (swatchCount !== expectedThemes.length) {

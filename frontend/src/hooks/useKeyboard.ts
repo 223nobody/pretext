@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { THEMES } from "../lib/theme";
-import { useReaderStore } from "../store/readerStore";
+import { MAX_READER_COLUMNS, useReaderStore } from "../store/readerStore";
 
 function isEditingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
@@ -31,7 +31,7 @@ export function useKeyboard() {
       if (isEditingTarget(event.target)) {
         return;
       }
-      if (event.key >= "1" && event.key <= "4") {
+      if (event.key >= "1" && event.key <= String(MAX_READER_COLUMNS)) {
         setColumnCount(Number(event.key));
       }
       if (event.key.toLowerCase() === "f") {
@@ -42,7 +42,9 @@ export function useKeyboard() {
         setTheme(THEMES[(index + 1) % THEMES.length].name);
       }
       if (event.key === "[" || event.key === "]") {
-        const next = event.key === "[" ? Math.max(1, columnCount - 1) : Math.min(4, columnCount + 1);
+        const next = event.key === "["
+          ? Math.max(1, columnCount - 1)
+          : Math.min(MAX_READER_COLUMNS, columnCount + 1);
         setColumnCount(next);
       }
       if (event.key === "?") {

@@ -110,6 +110,13 @@ class ValidationService:
 
 
 def detect_mime(content: bytes, extension: str) -> str:
+    try:
+        import magic
+
+        return magic.from_buffer(content, mime=True)
+    except Exception:
+        pass
+
     head = content[:512].lstrip()
     if head.startswith(b"%PDF"):
         return "application/pdf"

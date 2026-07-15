@@ -6,10 +6,22 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import ssl
+
 import aiohttp
 
+from app.config import settings
 from app.services.extractors.pdf_extractor import extract_pdf
 from app.services.validation_service import FileValidationError
+
+
+def _make_connector() -> aiohttp.TCPConnector:
+    if settings.verify_ssl:
+        return aiohttp.TCPConnector(ssl=True)
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    return aiohttp.TCPConnector(ssl=ssl_context)
 
 ARXIV_RE = re.compile(r"^\d{4}\.\d{4,5}(v\d+)?$|^[a-z-]+(?:\.[A-Z]{2})?/\d{7}(v\d+)?$")
 ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
@@ -21,9 +33,11 @@ class ArxivService:
             raise FileValidationError("UNSUPPORTED_FORMAT", "Invalid ArXiv ID format")
 
         url = f"https://export.arxiv.org/api/query?id_list={arxiv_id}"
-        timeout = aiohttp.ClientTimeout(total=15)
+        timeout = aiohttp.ClientTimeout(total=20)
+        headers = {"User-Agent": "PretextReader/0.1 (mailto:pretext@example.com)"}
+        connector = _make_connector()
         try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
                 async with session.get(url) as response:
                     response.raise_for_status()
                     payload = await response.text()
@@ -69,8 +83,16 @@ class ArxivService:
                 "ARXIV_FETCH_FAILED",
                 f"ArXiv returned HTTP {exc.status}",
             ) from exc
+        except aiohttp.ClientConnectorError as exc:
+            raise FileValidationError(
+                "ARXIV_FETCH_FAILED",
+                f"Cannot connect to ArXiv — check your network or set VERIFY_SSL=false: {exc}",
+            ) from exc
         except aiohttp.ClientError as exc:
-            raise FileValidationError("ARXIV_FETCH_FAILED", "ArXiv fetch failed") from exc
+            raise FileValidationError(
+                "ARXIV_FETCH_FAILED",
+                f"ArXiv fetch failed: {exc}",
+            ) from exc
 
         return {
             "arxiv_id": arxiv_id,

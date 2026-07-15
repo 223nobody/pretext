@@ -6,12 +6,19 @@ from fastapi.responses import JSONResponse
 
 from app.api.routes import api_router
 from app.config import settings
+from app.middleware.logging import RequestLoggingMiddleware, setup_json_logging
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.services.validation_service import FileValidationError
 
 
 def create_app() -> FastAPI:
+    setup_json_logging()
+
     app = FastAPI(title=settings.app_name, version="0.1.0")
 
+    # Middleware order: outermost first → innermost last
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(RateLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,

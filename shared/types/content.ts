@@ -1,4 +1,4 @@
-export type ContentSource = "arxiv" | "url" | "sample" | "file";
+export type ContentSource = "arxiv" | "url" | "file" | "text";
 
 export interface ArticleMetadata {
   title?: string;

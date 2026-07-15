@@ -1,4 +1,4 @@
-export type ContentSource = "arxiv" | "url" | "sample" | "file" | "text";
+export type ContentSource = "arxiv" | "url" | "file" | "text";
 
 export type ThemeName = "dark" | "light" | "sepia" | "forest" | "ocean" | "sunset";
 
@@ -54,18 +54,6 @@ export interface TextExtractResult {
   metadata: {
     source?: string;
   };
-}
-
-export interface SampleSummary {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-  excerpt: string;
-}
-
-export interface SampleArticle extends SampleSummary {
-  text: string;
 }
 
 export interface ArxivArticle {

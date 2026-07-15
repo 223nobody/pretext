@@ -1,6 +1,16 @@
 import { create } from "zustand";
 
+import { defaultEngineMode } from "../lib/canvasSupport";
+import { addToHistory, saveLastPosition, type LastPosition } from "../lib/history";
+import type { VideoMaskResult } from "../lib/videoMaskAnalysis";
 import type { ArticleMetadata, ContentSource, Language, ThemeName } from "../types";
+
+export const MAX_READER_COLUMNS = 2;
+export const READER_SERIF_FONT = "'Noto Serif SC', 'Noto Serif', Georgia, 'Times New Roman', serif";
+
+function clampColumnCount(columnCount: number): number {
+  return Math.min(MAX_READER_COLUMNS, Math.max(1, Math.round(columnCount)));
+}
 
 interface ReaderState {
   contentSource: ContentSource | null;
@@ -15,7 +25,6 @@ interface ReaderState {
   lineHeight: number;
   currentPage: number;
   pageCount: number;
-  paragraphsPerPage: number;
   bubbleRadius: number;
   customCursor: string | null;
   backgroundVideo: {
@@ -29,12 +38,20 @@ interface ReaderState {
     maskY: number;
     maskSize: number;
     autoMask: boolean;
+    contour: VideoMaskResult["contour"] | null;
   };
+  /**
+   * Incremented to force a background re-sample / re-layout (see
+   * NEXT_DEVELOPMENT_PLAN §5.3.1). Consumers watch this token.
+   */
+  resampleToken: number;
   theme: ThemeName;
   language: Language;
   isHelpOpen: boolean;
   isSidebarOpen: boolean;
   isFullscreen: boolean;
+  engineMode: "canvas" | "css";
+  fontFamily: string;
   setLoading: (isLoading: boolean, progress?: number) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
@@ -53,9 +70,10 @@ interface ReaderState {
   setBackgroundSensitivity: (sensitivity: number) => void;
   setBackgroundEdgePrecision: (edgePrecision: number) => void;
   setBackgroundOutlineWidth: (outlineWidth: number) => void;
-  setBackgroundMask: (mask: { x?: number; y?: number; size?: number }) => void;
+  setBackgroundMask: (mask: { x?: number; y?: number; size?: number; contour?: VideoMaskResult["contour"] | null }) => void;
   toggleBackgroundAutoMask: () => void;
   toggleBackgroundInverted: () => void;
+  resampleBackground: () => void;
   setTheme: (theme: ThemeName) => void;
   setLanguage: (language: Language) => void;
   toggleHelp: () => void;
@@ -63,6 +81,8 @@ interface ReaderState {
   toggleSidebar: () => void;
   setFullscreen: (isFullscreen: boolean) => void;
   toggleFullscreen: () => void;
+  setEngineMode: (engineMode: "canvas" | "css") => void;
+  setFontFamily: (fontFamily: string) => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -74,30 +94,33 @@ export const useReaderStore = create<ReaderState>((set) => ({
   error: null,
   columnCount: 2,
   columnGap: 40,
-  fontSize: 18,
-  lineHeight: 1.65,
+  fontSize: 15,
+  lineHeight: 1.7,
   currentPage: 0,
   pageCount: 1,
-  paragraphsPerPage: 18,
-  bubbleRadius: 80,
+  bubbleRadius: 40,
   customCursor: null,
   backgroundVideo: {
     url: null,
     fileName: null,
-    sensitivity: 40,
-    edgePrecision: 5,
-    outlineWidth: 6,
+    sensitivity: 38,
+    edgePrecision: 3,
+    outlineWidth: 0,
     inverted: false,
     maskX: 62,
     maskY: 36,
     maskSize: 220,
     autoMask: true,
+    contour: null,
   },
-  theme: (import.meta.env.VITE_DEFAULT_THEME as ThemeName) || "dark",
+  resampleToken: 0,
+  theme: (import.meta.env.VITE_DEFAULT_THEME as ThemeName) || "light",
   language: "en",
   isHelpOpen: false,
   isSidebarOpen: true,
   isFullscreen: false,
+  engineMode: defaultEngineMode(),
+  fontFamily: READER_SERIF_FONT,
   setLoading: (isLoading, loadingProgress = isLoading ? 35 : 0) =>
     set((state) => ({
       isLoading,
@@ -106,13 +129,25 @@ export const useReaderStore = create<ReaderState>((set) => ({
     })),
   setError: (error) => set({ error, isLoading: false, loadingProgress: 0 }),
   clearError: () => set({ error: null }),
-  setContent: (text, metadata, contentSource) =>
-    set({ text, metadata, contentSource, isLoading: false, loadingProgress: 100, error: null }),
-  setColumnCount: (columnCount) => set({ columnCount }),
+  setContent: (text, metadata, contentSource) => {
+    // Track reading history
+    const id = metadata.title ?? `untitled-${Date.now()}`;
+    addToHistory(id, metadata, contentSource);
+    set({ text, metadata, contentSource, isLoading: false, loadingProgress: 100, error: null });
+  },
+  setColumnCount: (columnCount) => set({ columnCount: clampColumnCount(columnCount) }),
   setColumnGap: (columnGap) => set({ columnGap }),
   setFontSize: (fontSize) => set({ fontSize }),
   setLineHeight: (lineHeight) => set({ lineHeight }),
-  setCurrentPage: (currentPage) => set({ currentPage: Math.max(0, currentPage) }),
+  setCurrentPage: (currentPage) => {
+    set((state) => {
+      const id = state.metadata?.title ?? "untitled";
+      const pageCount = state.pageCount || 1;
+      const scrollPercent = pageCount <= 1 ? 0 : (currentPage / (pageCount - 1)) * 100;
+      saveLastPosition({ id, pageIndex: currentPage, scrollPercent });
+      return { currentPage: Math.max(0, currentPage) };
+    });
+  },
   setPageCount: (pageCount) =>
     set((state) => ({
       pageCount: Math.max(1, pageCount),
@@ -141,6 +176,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
           ...state.backgroundVideo,
           url: file ? URL.createObjectURL(file) : null,
           fileName: file?.name ?? null,
+          contour: null,
         },
       };
     }),
@@ -163,6 +199,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
         maskX: mask.x ?? state.backgroundVideo.maskX,
         maskY: mask.y ?? state.backgroundVideo.maskY,
         maskSize: mask.size ?? state.backgroundVideo.maskSize,
+        contour: mask.contour === undefined ? state.backgroundVideo.contour : mask.contour,
       },
     })),
   toggleBackgroundAutoMask: () =>
@@ -179,6 +216,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
         inverted: !state.backgroundVideo.inverted,
       },
     })),
+  resampleBackground: () => set((state) => ({ resampleToken: state.resampleToken + 1 })),
   setTheme: (theme) => set({ theme }),
   setLanguage: (language) => set({ language }),
   toggleHelp: () => set((state) => ({ isHelpOpen: !state.isHelpOpen })),
@@ -198,4 +236,6 @@ export const useReaderStore = create<ReaderState>((set) => ({
       }
       return { isFullscreen: next };
     }),
+  setEngineMode: (engineMode) => set({ engineMode }),
+  setFontFamily: (fontFamily) => set({ fontFamily }),
 }));

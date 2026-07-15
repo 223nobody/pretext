@@ -1,0 +1,12 @@
+# Zotero plugin marketplace submission config
+# For: https://github.com/syt2/zotero-addons-scraper
+#
+# To submit:
+# 1. Fork syt2/zotero-addons-scraper
+# 2. Copy this file to addons/zotero-pretext-reader.yml in your fork
+# 3. Open a Pull Request
+
+repo: 223nobody/pretext
+releases:
+  - targetZoteroVersion: "7"
+    tagName: latest

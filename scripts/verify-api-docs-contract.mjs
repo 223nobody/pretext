@@ -18,7 +18,6 @@ const fileUpload = read("backend/app/api/file_upload.py");
 const textExtract = read("backend/app/api/text_extract.py");
 const arxiv = read("backend/app/api/arxiv.py");
 const urlFetch = read("backend/app/api/url_fetch.py");
-const samples = read("backend/app/api/samples.py");
 const cache = read("backend/app/api/cache.py");
 
 const endpoints = [
@@ -46,16 +45,6 @@ const endpoints = [
     doc: "POST /url/fetch",
     routeSnippets: ['api_router.include_router(url_fetch.router, prefix="/url"', '@router.post("/fetch")'],
     sources: [routes, urlFetch],
-  },
-  {
-    doc: "GET /samples",
-    routeSnippets: ['api_router.include_router(samples.router, prefix="/samples"', '@router.get("")'],
-    sources: [routes, samples],
-  },
-  {
-    doc: "GET /samples/{id}",
-    routeSnippets: ['api_router.include_router(samples.router, prefix="/samples"', '@router.get("/{sample_id}")'],
-    sources: [routes, samples],
   },
   {
     doc: "DELETE /cache/{key}",
@@ -86,7 +75,7 @@ if (missingRoutes.length) {
   fail(`Backend routes do not match documented API endpoints:\n${missingRoutes.join("\n")}`);
 }
 
-const readmeCapabilities = ["health", "file upload", "raw text extraction", "URL fetch", "ArXiv fetch", "samples", "cache cleanup"];
+const readmeCapabilities = ["health", "file upload", "raw text extraction", "URL fetch", "ArXiv fetch", "cache cleanup"];
 const missingReadme = readmeCapabilities.filter((capability) => !readme.includes(capability));
 if (missingReadme.length) {
   fail(`README current capabilities are missing API surfaces:\n${missingReadme.join("\n")}`);

@@ -1,38 +1,35 @@
-import { useEffect, useState } from "react";
 import { Library } from "lucide-react";
 
-import { getSample, listSamples } from "../../lib/api";
+import { useFileUpload } from "../../hooks/useFileUpload";
 import { getApiErrorMessage } from "../../lib/apiErrors";
 import { t } from "../../lib/i18n";
 import { useReaderStore } from "../../store/readerStore";
-import type { SampleSummary } from "../../types";
+
+const SAMPLE_PDF_URL = "/samples/attention-is-all-you-need.pdf";
+const SAMPLE_PDF_NAME = "attention-is-all-you-need.pdf";
 
 export function SampleLoader() {
-  const [samples, setSamples] = useState<SampleSummary[]>([]);
-  const setLoading = useReaderStore((state) => state.setLoading);
-  const setContent = useReaderStore((state) => state.setContent);
   const setError = useReaderStore((state) => state.setError);
   const isLoading = useReaderStore((state) => state.isLoading);
   const language = useReaderStore((state) => state.language);
+  const upload = useFileUpload();
 
-  useEffect(() => {
-    listSamples()
-      .then(setSamples)
-      .catch(() => setSamples([]));
-  }, []);
-
-  const load = async (id: string) => {
+  const loadSampleArticle = async () => {
     if (isLoading) {
       return;
     }
-    setLoading(true, 20);
+
     try {
-      const sample = await getSample(id);
-      setContent(
-        sample.text,
-        { title: sample.title, author: sample.author, source: sample.category },
-        "sample",
-      );
+      const response = await fetch(`${SAMPLE_PDF_URL}?v=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error(`Could not load bundled sample PDF: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const file = new File([blob], SAMPLE_PDF_NAME, { type: "application/pdf" });
+      await upload(file);
     } catch (error) {
       setError(getApiErrorMessage(language, error, "sampleLoadFailed"));
     }
@@ -41,25 +38,14 @@ export function SampleLoader() {
   return (
     <div className="sample-row">
       <Library size={16} />
-      <select
-        defaultValue=""
-        onChange={(event) => {
-          if (event.target.value) {
-            void load(event.target.value);
-          }
-        }}
-        aria-label={t(language, "samples")}
+      <button
+        type="button"
+        aria-label={t(language, "loadSampleArticle")}
         disabled={isLoading}
+        onClick={() => void loadSampleArticle()}
       >
-        <option value="" disabled>
-          {t(language, "samples")}
-        </option>
-        {samples.map((sample) => (
-          <option key={sample.id} value={sample.id}>
-            {sample.title}
-          </option>
-        ))}
-      </select>
+        {t(language, "loadSampleArticle")}
+      </button>
     </div>
   );
 }

@@ -14,6 +14,7 @@ class Settings:
     enable_ocr = os.getenv("ENABLE_OCR", "false").lower() in {"1", "true", "yes", "on"}
     ocr_language = os.getenv("OCR_LANGUAGE", "eng")
     url_fetch_user_agent = os.getenv("URL_FETCH_USER_AGENT", "PretextReader/0.1")
+    verify_ssl = os.getenv("VERIFY_SSL", "true").lower() not in {"0", "false", "no", "off"}
     allowed_origins = [
         origin.strip()
         for origin in os.getenv(

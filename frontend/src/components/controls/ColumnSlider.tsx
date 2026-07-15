@@ -1,7 +1,7 @@
 import { Columns3 } from "lucide-react";
 
 import { t } from "../../lib/i18n";
-import { useReaderStore } from "../../store/readerStore";
+import { MAX_READER_COLUMNS, useReaderStore } from "../../store/readerStore";
 
 export function ColumnSlider() {
   const columnCount = useReaderStore((state) => state.columnCount);
@@ -14,7 +14,7 @@ export function ColumnSlider() {
       <input
         type="range"
         min="1"
-        max="4"
+        max={MAX_READER_COLUMNS}
         step="1"
         value={columnCount}
         aria-label={t(language, "columns")}

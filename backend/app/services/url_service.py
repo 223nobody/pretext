@@ -1,14 +1,25 @@
 from __future__ import annotations
 
 import asyncio
+import ssl
 from urllib.parse import urlparse
 
 import aiohttp
 from bs4 import BeautifulSoup
 
 from app.config import settings
+
 from app.services.security_service import sanitize_text
 from app.services.validation_service import FileValidationError
+
+
+def _make_connector() -> aiohttp.TCPConnector:
+    if settings.verify_ssl:
+        return aiohttp.TCPConnector(ssl=True)
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    return aiohttp.TCPConnector(ssl=ssl_context)
 
 
 class UrlService:
@@ -19,8 +30,11 @@ class UrlService:
 
         timeout = aiohttp.ClientTimeout(total=timeout_ms / 1000)
         headers = {"User-Agent": settings.url_fetch_user_agent}
+        connector = _make_connector()
         try:
-            async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
+            async with aiohttp.ClientSession(
+                timeout=timeout, headers=headers, connector=connector
+            ) as session:
                 async with session.get(url) as response:
                     response.raise_for_status()
                     html = await response.text(errors="replace")
