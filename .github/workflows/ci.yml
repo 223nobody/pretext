@@ -88,23 +88,36 @@ jobs:
           name: pretext-reader.xpi
           path: zotero-plugin/build/pretext-reader.xpi
 
-  docker-build:
-    name: Docker Compose Build
+  docker-backend:
+    name: Docker Build (Backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - name: Docker info
-        run: docker version
+      - uses: docker/setup-buildx-action@v4
 
-      - name: Build backend Docker image
-        run: docker build --progress=plain -t pretext-backend ./backend
+      - uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build frontend Docker image
-        run: |
-          docker build --progress=plain \
-            --build-arg VITE_API_URL=http://localhost:8000/api/v1 \
-            --build-arg VITE_APP_NAME="Pretext Reader" \
-            --build-arg VITE_DEFAULT_THEME=light \
-            -t pretext-frontend \
-            ./frontend
+  docker-frontend:
+    name: Docker Build (Frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: ./frontend
+          push: false
+          build-args: |
+            VITE_API_URL=http://localhost:8000/api/v1
+            VITE_APP_NAME=Pretext Reader
+            VITE_DEFAULT_THEME=light
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
